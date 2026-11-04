@@ -86,10 +86,11 @@ def detect_emotion_from_emoji(e: str):
     return "neutral"
 
 def detect_emotion_from_face(img_bytes):
+    def detect_emotion_from_face(img_bytes):
     try:
         from fer import FER
-    except Exception:
-        st.error("FER not available. pip install fer tensorflow-cpu")
+    except Exception as e:
+        st.error(f"FER Error: {e}")
         return None
     file_bytes = np.asarray(bytearray(img_bytes.read()), dtype=np.uint8)
     frame = cv2.imdecode(file_bytes, 1)
@@ -132,7 +133,11 @@ def spotify_search(emotion, language=None, limit=8):
     q = qmap.get(emotion, "music")
     if language:
         q += f" {language}"  # add language to query
-    res = sp.search(q=q, type="track", limit=limit)
+    try:
+        res = sp.search(q=q, type="track", limit=limit)
+    except Exception as e:
+        st.error(f"Spotify Error: {e}")
+    return []
     tracks = []
     for t in res.get('tracks', {}).get('items', []):
         tracks.append({
