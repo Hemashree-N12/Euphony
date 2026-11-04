@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from googleapiclient.discovery import build
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyOAuth
 
 # === CONFIG - replace with your keys ===
 YOUTUBE_API_KEY = "AIzaSyDDFUI6CbPWoTCuivwY2j_ONF6vMWbCb5U"          
@@ -24,8 +24,9 @@ except Exception as e:
 
 # Initialize Spotify
 try:
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-        client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET, redirect_uri="http://localhost:8501",
+        scope="user-read-private"
     ))
 except Exception as e:
     sp = None
@@ -87,21 +88,28 @@ def detect_emotion_from_emoji(e: str):
 
 def detect_emotion_from_face(img_bytes):
     try:
-        import fer
-        st.write(dir(fer))
+        from fer import FER
     except Exception as e:
         st.error(f"FER Error: {e}")
-    return None
-    # only runs if import succeeded
-    detector = FER()
+        return None
+
     file_bytes = np.asarray(bytearray(img_bytes.read()), dtype=np.uint8)
-    frame = cv2.imdecode(file_bytes, 1)
+    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
     if frame is None:
         return None
-    detector = FER()
-    em, score = detector.top_emotion(frame)
-    if em:
-        return em.lower()
+
+    try:
+        detector = FER(mtcnn=True)
+        result = detector.top_emotion(frame)
+
+        if result:
+            emotion, score = result
+            return emotion.lower()
+
+    except Exception as e:
+        st.error(f"Face Detection Error: {e}")
+
     return None
 
 # ---------- music fetchers ----------
@@ -139,8 +147,10 @@ def spotify_search(emotion, language=None, limit=8):
         res = sp.search(q=q, type="track", limit=limit)
     except Exception as e:
         st.error(f"Spotify Error: {e}")
-    return []
+        return []
+
     tracks = []
+
     for t in res.get('tracks', {}).get('items', []):
         tracks.append({
             "name": t['name'],
