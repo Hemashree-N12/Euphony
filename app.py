@@ -86,12 +86,13 @@ def detect_emotion_from_emoji(e: str):
     return "neutral"
 
 def detect_emotion_from_face(img_bytes):
-    def detect_emotion_from_face(img_bytes):
-        try:
-            from fer import FER
-        except Exception as e:
-            st.error(f"FER Error: {e}")
-        return None
+    try:
+        from fer import FER
+    except Exception as e:
+        st.error(f"FER Error: {e}")
+    return None
+    # only runs if import succeeded
+    detector = FER()
     file_bytes = np.asarray(bytearray(img_bytes.read()), dtype=np.uint8)
     frame = cv2.imdecode(file_bytes, 1)
     if frame is None:
