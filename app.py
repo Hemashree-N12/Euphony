@@ -87,7 +87,8 @@ def detect_emotion_from_emoji(e: str):
 
 def detect_emotion_from_face(img_bytes):
     try:
-        from fer import FER
+        import fer
+        st.write(dir(fer))
     except Exception as e:
         st.error(f"FER Error: {e}")
     return None
@@ -97,7 +98,7 @@ def detect_emotion_from_face(img_bytes):
     frame = cv2.imdecode(file_bytes, 1)
     if frame is None:
         return None
-    detector = FER(mtcnn=True)
+    detector = FER()
     em, score = detector.top_emotion(frame)
     if em:
         return em.lower()
