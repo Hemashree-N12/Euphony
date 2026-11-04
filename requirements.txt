@@ -1,6 +1,8 @@
 requests>=2.27.1
 streamlit
 opencv-python-headless
+google-api-python-client
+spotipy>=2.19.0
 numpy>=1.14.0
 pandas>=0.23.4
 gdown>=3.10.1
